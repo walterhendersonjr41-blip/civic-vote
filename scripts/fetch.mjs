@@ -30,7 +30,7 @@ try {
     const d = b.latestAction?.actionDate; if (!d || now - Date.parse(d) > 45 * DAY) continue;
     items.push({ id: `us-${b.type}${b.number}-${b.congress}`.toLowerCase(), level: 'Federal', place: 'U.S. Congress', state: 'US',
       title: clip(`${b.type} ${b.number}: ${b.title}`, 220), summary: clip('Latest: ' + b.latestAction.text), date: d,
-      status: b.originChamber ? `Started in the ${b.originChamber}` : '', official: outcomeOf(b.latestAction.text), officialNote: clip(b.latestAction.text, 160),
+      status: b.originChamber ? `Started in the ${b.originChamber}` : '', official: ((o) => o === 'Tabled' || o === 'Filed' ? null : o)(outcomeOf(b.latestAction.text)), officialNote: clip(b.latestAction.text, 160),
       url: `https://www.congress.gov/bill/${b.congress}th-congress/${TYPE[b.type] || 'house-bill'}/${b.number}` });
     n++;
   }
