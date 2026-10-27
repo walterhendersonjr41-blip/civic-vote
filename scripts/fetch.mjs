@@ -3,6 +3,21 @@ import fs from 'fs';
 const now = Date.now(), DAY = 864e5;
 const status = {}; const items = [];
 const clip = (s, n = 280) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
+// Official outcome from the record's own status text. Never guessed: unknown -> null (shown as Pending).
+function outcomeOf(t) {
+  t = String(t || '').toLowerCase();
+  if (!t || /to be (passed|adopted)|pending|ready|introduc|first read|second read|referred|in committee/.test(t) && !/became public law|signed by president/.test(t)) return null;
+  if (/veto/.test(t) && !/overrid/.test(t)) return 'Vetoed';
+  if (/became public law|signed by president|royal assent|enacted|act \(law\)/.test(t)) return 'Became law';
+  if (/withdraw/.test(t)) return 'Withdrawn';
+  if (/\b(failed|defeated|denied|rejected|not passed|not adopted)\b/.test(t)) return 'Failed';
+  if (/tabled|\bheld\b|postponed|continued/.test(t)) return 'Tabled';
+  if (/adopted/.test(t)) return 'Adopted';
+  if (/approved/.test(t)) return 'Approved';
+  if (/passed|agreed to/.test(t)) return 'Passed';
+  if (/placed on file|filed|received/.test(t)) return 'Filed';
+  return null;
+}
 const get = async (u, ms = 20000) => { const r = await fetch(u, { signal: AbortSignal.timeout(ms), headers: { 'User-Agent': 'civic-vote (github.com/walterhendersonjr41-blip/civic-vote)' } }); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); };
 
 // ---- Federal: congress.gov (free DEMO_KEY, or CONGRESS_API_KEY secret if set)
@@ -15,7 +30,7 @@ try {
     const d = b.latestAction?.actionDate; if (!d || now - Date.parse(d) > 45 * DAY) continue;
     items.push({ id: `us-${b.type}${b.number}-${b.congress}`.toLowerCase(), level: 'Federal', place: 'U.S. Congress', state: 'US',
       title: clip(`${b.type} ${b.number}: ${b.title}`, 220), summary: clip('Latest: ' + b.latestAction.text), date: d,
-      status: b.originChamber ? `Started in the ${b.originChamber}` : '',
+      status: b.originChamber ? `Started in the ${b.originChamber}` : '', official: outcomeOf(b.latestAction.text), officialNote: clip(b.latestAction.text, 160),
       url: `https://www.congress.gov/bill/${b.congress}th-congress/${TYPE[b.type] || 'house-bill'}/${b.number}` });
     n++;
   }
@@ -27,11 +42,11 @@ try {
   const j = await get('https://bills-api.parliament.uk/api/v1/Bills?SortOrder=DateUpdatedDescending&Take=40&CurrentHouse=All', 30000);
   let n = 0;
   for (const b of j.items || []) {
-    if (b.billWithdrawn || b.isDefeated) continue;
-    const st = b.currentStage || {}; const sit = (st.stageSittings || [])[0];
+        const st = b.currentStage || {}; const sit = (st.stageSittings || [])[0];
     items.push({ id: 'uk-' + b.billId, level: 'World', place: 'United Kingdom Parliament', state: 'UK', country: 'United Kingdom',
       title: clip(b.shortTitle, 220), summary: clip(`Now at: ${st.description || 'unknown stage'} in the House of ${b.currentHouse}.${b.isAct ? ' Already became law.' : ''}`),
       date: (sit?.date && Date.parse(sit.date) < now + 60 * DAY ? sit.date : b.lastUpdate || '').slice(0, 10), status: b.isAct ? 'Act (law)' : (st.description || ''),
+      official: b.isAct || /royal assent/i.test(st.description || '') ? 'Became law' : b.billWithdrawn ? 'Withdrawn' : b.isDefeated ? 'Failed' : null, officialNote: b.isAct ? 'Royal Assent' : (st.description || ''),
       url: `https://bills.parliament.uk/bills/${b.billId}` });
     n++;
   }
@@ -59,6 +74,7 @@ async function one(s) {
       items.push({ id: `${s}-${m.MatterId}`, level: meta.level || 'City', place: meta.name, state: meta.state || '', title,
         summary: clip((m.MatterName && m.MatterName !== m.MatterTitle ? m.MatterName + '. ' : '') + bits.join(' ')),
         date: d, status: (m.MatterStatusName || '').trim(),
+        official: outcomeOf(m.MatterStatusName) || (m.MatterPassedDate ? 'Passed' : null), officialNote: m.MatterPassedDate ? 'Passed ' + m.MatterPassedDate.slice(0, 10) : (m.MatterStatusName || '').trim(),
         url: `https://${s}.legistar.com/LegislationDetail.aspx?ID=${m.MatterId}&GUID=${m.MatterGuid}` });
       n++;
     }

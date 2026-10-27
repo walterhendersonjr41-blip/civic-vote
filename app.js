@@ -5,16 +5,25 @@ const ST = (k, v) => v === undefined ? localStorage.getItem('cv-' + k) || '' : l
 let data = { items: [], status: {} }, shown = [], limit = 30, level = ST('level') || 'All', tallies = {};
 const boardReady = new Promise(r => window.Board ? r() : window.addEventListener('board-ready', r, { once: true }));
 
-function voteHtml(id) {
+const YES = { 'Passed': 1, 'Adopted': 1, 'Approved': 1, 'Became law': 1 }, NO = { 'Failed': 1, 'Vetoed': 1 };
+function offHtml(id, n, pct) {
+  const i = byId[id]; if (!i) return '';
+  const o = i.official, pub = n ? `Public: ${pct}% yes` : 'Public: no votes yet';
+  let agree = '';
+  if (o && n && (YES[o] || NO[o]) && pct !== 50) agree = `<div class="small">${(pct > 50) === !!YES[o] ? '🤝 The public agreed with the officials.' : '⚔️ The public disagreed with the officials.'}</div>`;
+  return `<div class="small"><b>${pub} | Official: ${o ? esc(o) : 'Pending (no official result yet)'}</b>${o && i.officialNote ? ' · ' + esc(i.officialNote) : ''}</div>${agree}`;
+}
+let byId = {};
+function voteHtml(id, it) {
   const t = tallies[id] || { yes: 0, no: 0, mine: null }, n = t.yes + t.no, pct = n ? Math.round(100 * t.yes / n) : 50;
   return `<div class="vote"><button data-v="yes" data-id="${esc(id)}" class="${t.mine === 'yes' ? 'picked' : ''}">👍 Yes · ${t.yes}</button><button data-v="no" data-id="${esc(id)}" class="no ${t.mine === 'no' ? 'picked' : ''}">👎 No · ${t.no}</button></div>
-  <div class="bar"><i style="width:${n ? pct : 0}%"></i></div><div class="small">${n ? `${pct}% yes of ${n} vote${n > 1 ? 's' : ''}` : 'No votes yet. Be the first.'}</div>`;
+  <div class="bar"><i style="width:${n ? pct : 0}%"></i></div><div class="small">${n ? `${pct}% yes of ${n} vote${n > 1 ? 's' : ''}` : 'No votes yet. Be the first.'}</div>${offHtml(id, n, pct)}`;
 }
 const fmtDate = d => { if (!d) return ''; const x = new Date(d + 'T12:00:00'); return isNaN(x) ? d : x.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }); };
 
 function filtered() {
   const st = $('state').value, pl = $('place').value, q = $('q').value.trim().toLowerCase();
-  return data.items.filter(i => (level === 'All' || i.level === level) && (!st || i.state === st) && (!pl || i.place === pl) && (!q || (i.title + ' ' + i.summary + ' ' + i.place).toLowerCase().includes(q)));
+  return data.items.filter(i => (!$('decided') || !$('decided').checked || i.official) && (level === 'All' || i.level === level) && (!st || i.state === st) && (!pl || i.place === pl) && (!q || (i.title + ' ' + i.summary + ' ' + i.place).toLowerCase().includes(q)));
 }
 function fillPlaces() {
   const st = $('state').value, keep = $('place').value;
@@ -53,6 +62,7 @@ async function init() {
   $('levels').onclick = e => { const b = e.target.closest('button'); if (!b) return; level = b.dataset.l; ST('level', level); [...$('levels').children].forEach(x => x.classList.toggle('on', x === b)); fillPlaces(); limit = 30; render(); };
   try { data = await (await fetch('data/items.json', { cache: 'no-cache' })).json(); }
   catch (e) { $('list').innerHTML = '<div class="note">Couldn\'t load the list of items right now. Please try again later.</div>'; return; }
+  data.items.forEach(i => byId[i.id] = i); $('decided').onchange = () => { limit = 30; render(); };
   const states = [...new Set(data.items.map(i => i.state).filter(Boolean))].sort();
   $('state').innerHTML += states.map(s => `<option${s === ST('state') ? ' selected' : ''}>${esc(s)}</option>`).join('');
   fillPlaces(); if (ST('place')) $('place').value = ST('place');
