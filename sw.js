@@ -1,5 +1,5 @@
 /* Network first, cached copy when offline. */
-const CACHE = 'civic-v1';
+const CACHE = 'civic-v2';
 self.addEventListener('install', e => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
 self.addEventListener('fetch', e => {
