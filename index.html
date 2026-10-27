@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Civic Vote – vote on what your government is voting on</title>
+<meta name="description" content="See real bills and agenda items from Congress, city councils and county boards, and vote yes or no yourself.">
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1d4ed8"><link rel="icon" href="icons/icon-192.png">
+<style>
+*{box-sizing:border-box}body{margin:0;font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f3f4f6;color:#111}
+header{background:#1d4ed8;color:#fff;padding:14px 16px}header h1{margin:0;font-size:22px}header p{margin:4px 0 0;font-size:14px;opacity:.9}
+main{max-width:760px;margin:0 auto;padding:12px}
+.tabs{display:flex;gap:8px;margin:4px 0 12px}.tabs button{flex:1;padding:10px;border:0;border-radius:10px;background:#e5e7eb;font-weight:600;font-size:15px}.tabs button.on{background:#1d4ed8;color:#fff}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}.chips button{white-space:nowrap;border:1px solid #cbd5e1;background:#fff;border-radius:999px;padding:6px 12px;font-size:14px}.chips button.on{background:#111;color:#fff;border-color:#111}
+.row{display:flex;gap:8px;margin:8px 0}.row>*{flex:1;min-width:0}
+select,input,textarea{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;font:inherit;background:#fff}
+.card{background:#fff;border-radius:14px;padding:14px;margin:10px 0;box-shadow:0 1px 2px #0001}
+.meta{font-size:13px;color:#555;display:flex;flex-wrap:wrap;gap:6px;align-items:center}.tag{background:#eef2ff;color:#3730a3;border-radius:6px;padding:1px 7px;font-weight:600}
+.card h3{margin:6px 0 4px;font-size:17px}.card p{margin:4px 0;color:#333;font-size:15px}
+.card a{color:#1d4ed8}
+.vote{display:flex;gap:8px;margin-top:10px}.vote button{flex:1;padding:10px;border-radius:10px;border:2px solid #16a34a;background:#fff;color:#166534;font-weight:700;font-size:15px}
+.vote button.no{border-color:#dc2626;color:#991b1b}.vote button.picked{color:#fff;background:#16a34a}.vote button.no.picked{background:#dc2626}
+.bar{height:8px;background:#fee2e2;border-radius:4px;overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;background:#16a34a}
+.small{font-size:13px;color:#555}.note{background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px;font-size:14px;margin:8px 0}
+.more{width:100%;padding:12px;border:0;border-radius:10px;background:#e5e7eb;font-weight:600;font-size:15px}
+.primary{padding:12px;border:0;border-radius:10px;background:#1d4ed8;color:#fff;font-weight:700;font-size:15px;width:100%}
+details summary{cursor:pointer;font-weight:600}
+</style></head><body>
+<header><h1>🗳️ Civic Vote</h1><p>Real things your government is voting on. Vote yes or no and see what everyone else thinks.</p></header>
+<main>
+<div class="tabs"><button id="tBills" class="on">Being voted on</button><button id="tPolls">Community polls</button></div>
+
+<section id="billsView">
+  <div class="chips" id="levels"></div>
+  <div class="row"><select id="state"><option value="">All states &amp; countries</option></select><select id="place"><option value="">All places</option></select></div>
+  <input id="q" type="search" placeholder="Search (for example: housing, police, budget)">
+  <div id="sources" class="small" style="margin:8px 0"></div>
+  <div id="list"></div><button class="more" id="more" hidden>Show more</button>
+</section>
+
+<section id="pollsView" hidden>
+  <div class="card"><h3>Ask your own question</h3>
+    <p class="small">Anyone can see and vote on it. Don't put private info in a poll.</p>
+    <input id="pq" maxlength="200" placeholder="Your question (yes or no)" style="margin:6px 0">
+    <textarea id="pd" maxlength="500" rows="2" placeholder="Details (optional)"></textarea>
+    <input id="pp" maxlength="60" placeholder="Where is this about? (optional, for example: Chattanooga, TN)" style="margin:6px 0">
+    <button class="primary" id="padd">Post poll</button><div id="pmsg" class="small"></div></div>
+  <input id="pqs" type="search" placeholder="Search polls">
+  <div id="plist"><p class="small">Loading polls…</p></div>
+</section>
+
+<details class="card"><summary>How this works</summary>
+<p class="small">Items come straight from official public sources and refresh every 6 hours: Congress (congress.gov), about 270 U.S. cities, counties and local agencies that publish on Legistar, and the UK Parliament. Each card links to the official page.</p>
+<p class="small">Votes here are a public opinion poll, not an official vote. They are shared for free over public Nostr relays. There's no account: your phone or computer gets its own random key, so it's one vote per device per item, and you can change your vote anytime.</p>
+<p class="small">Not covered yet: state legislatures, and places that don't use Legistar (for example Chattanooga and Hamilton County, TN).</p></details>
+</main>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
+<script type="module" src="board.js"></script>
+<script type="module" src="app.js"></script>
+</body></html>
