@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Data for AI agents &amp; researchers – Civic Vote</title><link rel="icon" href="icons/icon-192.png"><link rel="alternate" type="text/plain" href="llms.txt">
+<style>body{font-family:system-ui,sans-serif;max-width:760px;margin:auto;padding:16px;line-height:1.5;color:#111}h1{color:#1d4ed8}code,pre{background:#f1f5f9;border-radius:6px}pre{padding:10px;overflow:auto}li{margin:4px 0}</style></head><body>
+<p><a href="./">← Back to Civic Vote</a></p>
+<h1>Data for AI agents &amp; researchers</h1>
+<p>Civic Vote collects real things being voted on: bills in the US Congress, agenda items from about 250 US city councils, county boards and local boards, and UK Parliament bills. Each item has its official status and outcome, plus how Civic Vote users voted in our public poll. Everything below is free, needs no key, and refreshes every 6 hours.</p>
+<p id="stats">Loading counts…</p>
+<h2>Endpoints</h2><ul>
+<li><a href="api/items.json">https://walterhendersonjr41-blip.github.io/civic-vote/api/items.json</a> – every item (level, place, state, title, summary, status, official outcome, date, source link, public vote)</li>
+<li><a href="api/items.csv">https://walterhendersonjr41-blip.github.io/civic-vote/api/items.csv</a> – same, as a spreadsheet</li>
+<li><a href="api/places.json">https://walterhendersonjr41-blip.github.io/civic-vote/api/places.json</a> – places covered</li>
+<li><a href="api/summary.json">https://walterhendersonjr41-blip.github.io/civic-vote/api/summary.json</a> – counts by level, state and outcome</li>
+<li><a href="api/votes.json">https://walterhendersonjr41-blip.github.io/civic-vote/api/votes.json</a> – public yes/no totals per item</li>
+<li><a href="api/openapi.json">https://walterhendersonjr41-blip.github.io/civic-vote/api/openapi.json</a> – OpenAPI description · <a href="llms.txt">llms.txt</a> for AI agents</li></ul>
+<h2>Examples</h2>
+<pre>curl -s https://walterhendersonjr41-blip.github.io/civic-vote/api/summary.json</pre>
+<pre>const r = await fetch('https://walterhendersonjr41-blip.github.io/civic-vote/api/items.json');
+const { items } = await r.json();
+console.log(items.filter(i => i.state === 'TN' && i.official));</pre>
+<h2>License</h2><p>Government records are public. Civic Vote poll totals are free to use with attribution to “Civic Vote”. Poll votes are unofficial opinion, one per device.</p>
+<h2>Privacy</h2><p>No personal data is collected or sold. The feed only has vote totals, never who voted.</p>
+<h2>Need bulk, history or custom data?</h2><p>Contact us by <a href="https://github.com/walterhendersonjr41-blip/civic-vote/issues">opening a GitHub issue</a>.</p>
+<script>fetch('api/summary.json').then(r=>r.json()).then(s=>{document.getElementById('stats').textContent=s.items.toLocaleString()+' items from '+s.places+' places · '+s.votesCast+' public votes cast · updated '+new Date(s.updated).toLocaleString()})</script>
+</body></html>

@@ -1,0 +1,14 @@
+# Civic Vote
+> Free public feed of real things governments are voting on (US Congress, ~250 US cities/counties/boards via Legistar, UK Parliament bills), with each item's official outcome and Civic Vote public poll totals. Refreshed every 6 hours. No key needed.
+
+## Endpoints
+- [items.json](https://walterhendersonjr41-blip.github.io/civic-vote/api/items.json): all items (id, level, place, state, title, summary, status, official, date, url, publicVote)
+- [items.csv](https://walterhendersonjr41-blip.github.io/civic-vote/api/items.csv): same items as CSV
+- [places.json](https://walterhendersonjr41-blip.github.io/civic-vote/api/places.json): covered places with item counts
+- [summary.json](https://walterhendersonjr41-blip.github.io/civic-vote/api/summary.json): counts by level, state, outcome; source status
+- [votes.json](https://walterhendersonjr41-blip.github.io/civic-vote/api/votes.json): aggregated public yes/no tallies per item id
+- [openapi.json](https://walterhendersonjr41-blip.github.io/civic-vote/api/openapi.json): OpenAPI 3 description
+- [Docs](https://walterhendersonjr41-blip.github.io/civic-vote/data.html)
+
+## License
+Government records are public. Civic Vote poll aggregates are free to use with attribution to "Civic Vote". Polls are unofficial opinion, one vote per device. No personal data is collected or sold.
