@@ -31,7 +31,7 @@ try {
     const st = b.currentStage || {}; const sit = (st.stageSittings || [])[0];
     items.push({ id: 'uk-' + b.billId, level: 'World', place: 'United Kingdom Parliament', state: 'UK', country: 'United Kingdom',
       title: clip(b.shortTitle, 220), summary: clip(`Now at: ${st.description || 'unknown stage'} in the House of ${b.currentHouse}.${b.isAct ? ' Already became law.' : ''}`),
-      date: (sit?.date || b.lastUpdate || '').slice(0, 10), status: b.isAct ? 'Act (law)' : (st.description || ''),
+      date: (sit?.date && Date.parse(sit.date) < now + 60 * DAY ? sit.date : b.lastUpdate || '').slice(0, 10), status: b.isAct ? 'Act (law)' : (st.description || ''),
       url: `https://bills.parliament.uk/bills/${b.billId}` });
     n++;
   }
@@ -54,7 +54,7 @@ async function one(s) {
     local.ok++; let n = 0;
     for (const m of j) {
       const title = clip(m.MatterTitle || m.MatterName, 220); if (!title) continue;
-      const d = (m.MatterAgendaDate || m.MatterIntroDate || m.MatterLastModifiedUtc || '').slice(0, 10);
+      let d = (m.MatterAgendaDate || m.MatterIntroDate || '').slice(0, 10); if (!d || Date.parse(d) > now + 60 * DAY) d = (m.MatterLastModifiedUtc || '').slice(0, 10);
       const bits = [m.MatterTypeName, m.MatterBodyName && 'at ' + m.MatterBodyName].filter(Boolean).map(x => x.trim());
       items.push({ id: `${s}-${m.MatterId}`, level: meta.level || 'City', place: meta.name, state: meta.state || '', title,
         summary: clip((m.MatterName && m.MatterName !== m.MatterTitle ? m.MatterName + '. ' : '') + bits.join(' ')),
