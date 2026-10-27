@@ -7,17 +7,17 @@ const items = d.items.map(i => ({ id: i.id, level: i.level, place: i.place, stat
 const w = (f, o) => fs.writeFileSync('api/' + f, JSON.stringify(o));
 function readRelay(url) {
   return new Promise(res => {
-    const evs = []; let ws; const done = () => { try { ws.close(); } catch {} res(evs); };
+    const evs = []; let ws, ok = false; const done = () => { try { ws.close(); } catch {} res({ evs, ok }); };
     const t = setTimeout(done, 15000);
     try { ws = new WebSocket(url); } catch { clearTimeout(t); return res(evs); }
     ws.onopen = () => ws.send(JSON.stringify(['REQ', 'cv', { kinds: [30078], '#t': ['cv-vote'], limit: 50000 }]));
-    ws.onmessage = m => { const x = JSON.parse(m.data); if (x[0] === 'EVENT') evs.push(x[2]); if (x[0] === 'EOSE' || x[0] === 'CLOSED') { clearTimeout(t); done(); } };
+    ws.onmessage = m => { const x = JSON.parse(m.data); if (x[0] === 'EVENT') evs.push(x[2]); if (x[0] === 'EOSE') ok = true; if (x[0] === 'EOSE' || x[0] === 'CLOSED') { clearTimeout(t); done(); } };
     ws.onerror = () => { clearTimeout(t); done(); };
   });
 }
 const latest = new Map(); let relaysOk = 0;
-for (const evs of await Promise.all(RELAYS.map(readRelay))) {
-  if (evs.length) relaysOk++;
+for (const { evs, ok } of await Promise.all(RELAYS.map(readRelay))) {
+  if (ok) relaysOk++;
   for (const e of evs) { let c; try { c = JSON.parse(e.content); } catch { continue; } if (!c?.id || !['yes', 'no'].includes(c.v)) continue;
     const k = e.pubkey + '|' + c.id, o = latest.get(k); if (!o || e.created_at > o.at) latest.set(k, { at: e.created_at, id: c.id, v: c.v }); }
 }
